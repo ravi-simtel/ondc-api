@@ -82,6 +82,7 @@ class BppSearchService {
                     }
                 }
             }
+            console.log("Search Request:", searchRequest)
 
             const response = await protocolSearch(searchRequest);
 

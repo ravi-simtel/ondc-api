@@ -1,6 +1,6 @@
 {
   "name": "ondcreferenceapppaymentservice",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "ONDC reference app payment service",
   "main": "app.js",
   "type": "module",
@@ -39,7 +39,7 @@
   },
   "scripts": {
     "debug": "NODE_ENV=development nodemon --exec babel-node src/app.js --trace-deprecation",
-    "start": "node src/app.js"
+    "start": "node --env-file=.env src/app.js"
   },
   "repository": {
     "type": "git",

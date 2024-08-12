@@ -2,8 +2,10 @@ import SearchService from './search.service.js';
 import BadRequestParameterError from '../../lib/errors/bad-request-parameter.error.js';
 import NoRecordFoundError from "../../lib/errors/no-record-found.error.js";
 import { SSE_CONNECTIONS } from '../../utils/sse.js';
+import BppSearchService from './bppSearch.service.js';
 
-const searchService = new SearchService();
+// const searchService = new SearchService();
+const searchService = new BppSearchService();
 
 class SearchController {
 
@@ -17,7 +19,7 @@ class SearchController {
     search(req, res, next) {
         const searchRequest = req.query;
 
-        console.log({searchRequest})
+        console.log("Search Request", {searchRequest})
         const headers = req.headers;
 
         let targetLanguage = headers['targetlanguage'];

@@ -17,7 +17,7 @@ import validator from 'validator';
 import appVersionValidator from '../src/middlewares/appVersionValidator.js'
 
 const app = express();
-global.redisCache = new Redis(process.env.BHASHINI_REDIS_PORT, process.env.BHASHINI_REDIS_HOST);
+// global.redisCache = new Redis(process.env.BHASHINI_REDIS_PORT, process.env.BHASHINI_REDIS_HOST);
 const window = new JSDOM('').window;
 const purify = DOMPurify(window);
 
