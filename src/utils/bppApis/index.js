@@ -78,7 +78,7 @@ const bppInit = async (bppUri, order) => {
  */
 const bppSearch = async (bppUri, message) => {
     const authHeader = await createAuthorizationHeader(message);
-
+    console.log("bpp search", message);
     const apiCall = new HttpRequest(
         bppUri,
         BPP_API_URLS.SEARCH,

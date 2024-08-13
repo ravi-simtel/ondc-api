@@ -4,10 +4,14 @@ import {onSearch} from "../../utils/protocolApis/index.js";
 
 import ContextFactory from "../../factories/ContextFactory.js";
 import BppSearchService from "./bppSearch.service.js";
+import BPPService from "./bpp.service.js";
+
 import {CITY_CODE} from "../../utils/cityCode.js"
 import createPeriod from "date-period";
 // import logger from "../lib/logger";
-const bppSearchService = new BppSearchService();
+// const bppSearchService = new BppSearchService();
+
+const bppSearchService = new BPPService();
 
 class SearchService {
 
@@ -27,7 +31,7 @@ class SearchService {
         try {
 
             // logger.info(`[SearchService][search] Search product`, {params: searchRequest});
-
+            console.log(JSON.stringify(searchRequest))
             const {context: requestContext = {}, message = {}} = searchRequest;
             const {criteria = {}, payment} = message;
 

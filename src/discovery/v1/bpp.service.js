@@ -1,6 +1,6 @@
-import { protocolSearch } from "../../utils/protocolApis/index.js";
+import { bppSearch } from "../../utils/bppApis/index.js";
 
-class BppSearchService {
+class BPPService {
 
     /**
      * 
@@ -84,7 +84,7 @@ class BppSearchService {
             }
 
             console.log("Search Query:", searchRequest)
-            const response = await protocolSearch(searchRequest);
+            const response = await bppSearch(process.env.BPP_URL, searchRequest);
 
             console.log("Search Response:", response)
 
@@ -97,4 +97,4 @@ class BppSearchService {
     }
 }
 
-export default BppSearchService;
+export default BPPService;

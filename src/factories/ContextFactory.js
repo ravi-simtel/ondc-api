@@ -11,14 +11,18 @@ class ContextFactory {
       country = process.env.COUNTRY,
       bapId = process.env.BAP_ID,
       bapUrl = process.env.BAP_URL,
+      bppUrl = process.env.BPP_URL,
       city = process.env.CITY,
       state = process.env.STATE,
     } = arg || {};
 
     this.domain = domain;
     this.country = country;
+    this.city = city,
+    this.state = state,
     this.bapId = bapId;
     this.bapUrl = bapUrl;
+    this.bppUrl = bppUrl;
     this.timestamp = new Date();
   }
 
@@ -88,14 +92,14 @@ class ContextFactory {
     } = contextObject || {};
 
     return {
-      domain: domain,
+      domain: this.domain,
       country: this.country,
-      city: this.getCityByPinCode(pincode, city),
+      city: this.city,
       action: action,
       core_version: PROTOCOL_VERSION.v_1_2_0,
       bap_id: this.bapId,
       bap_uri: this.bapUrl,
-      //   bpp_uri: bpp_uri,
+      bpp_uri: this.bpp_uri,
       transaction_id: this.getTransactionId(transactionId),
       message_id: messageId,
       timestamp: this.timestamp,

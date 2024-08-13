@@ -161,7 +161,7 @@ const protocolSearch = async (data) => {
     );
 
     const result = await apiCall.send();
-
+    console.log("Protocol Result:", result)
     return result.data;
 }
 
