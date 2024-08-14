@@ -69,7 +69,7 @@ app.use((req, res, next) => {
 });
 
 // Apply CORS with the dynamic options to routes starting with /clientApis
-app.use('/clientApis',appVersionValidator(), router);
+app.use('/ondc',appVersionValidator(), router);
 
 app.use(helmet.xssFilter());
 // Custom function to escape special characters except for URLs

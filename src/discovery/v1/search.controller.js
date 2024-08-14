@@ -15,6 +15,7 @@ class SearchController {
    */
   search(req, res, next) {
     const searchRequest = req.body;
+
     console.log("Search Request", searchRequest);
 
     searchService
@@ -37,6 +38,8 @@ class SearchController {
    * @return {callback}
    */
   onSearch(req, res, next) {
+    console.log("On search response", req)
+
     const { query } = req;
     const { messageId } = query;
 

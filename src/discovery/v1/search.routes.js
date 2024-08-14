@@ -8,15 +8,15 @@ const searchController = new SearchController();
 
 // search
 router.post(
-    '/v1/search', 
+    '/search', 
     authentication(),
     searchController.search,
 );
 
 // on search
-router.get('/v1/on_search', authentication(), searchController.onSearch);
+router.post('/on_search', searchController.onSearch);
 
 // filter
-router.get('/v1/getFilterParams', authentication(), searchController.getFilterParams);
+router.get('/getFilterParams', searchController.getFilterParams);
 
 export default router;

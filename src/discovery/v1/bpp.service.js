@@ -83,7 +83,7 @@ class BPPService {
                 }
             }
 
-            console.log("Search Query:", searchRequest)
+            console.log("Search Query:", JSON.stringify(searchRequest, null, 4))
             const response = await bppSearch(process.env.BPP_URL, searchRequest);
 
             console.log("Search Response:", response)
