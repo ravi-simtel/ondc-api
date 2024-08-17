@@ -38,14 +38,16 @@ class SearchController {
    * @return {callback}
    */
   onSearch(req, res, next) {
-    console.log("On search response", req)
+    console.log("On search response", req.body);
 
-    const { query } = req;
-    const { messageId } = query;
+    const { context = {}, message = {} } = req.body;
+    const messageId = context.message_id;
+    console.log("message id", messageId);
 
+    // Parse each response from the buyer
     if (messageId) {
       searchService
-        .onSearch(query)
+        .onSearch(req.body)
         .then((result) => {
           res.json(result);
         })
