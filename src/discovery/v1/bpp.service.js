@@ -39,29 +39,15 @@ class BPPService {
                 }),
               },
             }),
-            ...(criteria?.pickup_location ||
-            criteria?.delivery_location ||
-            criteria?.area_code
+            ...(criteria.delivery_location || criteria.area_code
               ? {
                   fulfillment: {
                     type: "Delivery",
-                    ...(criteria?.pickup_location && {
-                      start: {
-                        location: {
-                          gps: criteria?.pickup_location,
-                          ...(criteria?.pickup_area_code && {
-                            address: {
-                              area_code: criteria?.pickup_area_code,
-                            },
-                          }),
-                        },
-                      },
-                    }),
-                    ...(criteria?.delivery_location && {
+                    ...(criteria.delivery_location && {
                       end: {
                         location: {
                           gps: criteria?.delivery_location,
-                          ...(criteria?.delivery_area_code && {
+                          ...(criteria.delivery_area_code && {
                             address: {
                               area_code: criteria?.delivery_area_code,
                             },
@@ -98,15 +84,45 @@ class BPPService {
             },
             tags: [
               {
-                code: "catalog_full",
-                list: [
-                  {
-                    code: "payload_type",
-                    ...(criteria?.payload_type && {
-                      value: criteria?.payload_type,
+                ...(criteria?.catalog
+                  ? {
+                      code: "catalog_inc",
+                      list: [
+                        {
+                          ...(criteria.inc_mode && {
+                            code: "mode",
+                            value: criteria.inc_mode,
+                          }),
+                        },
+                        {
+                          ...(criteria.start_time && {
+                            code: "start",
+                            value: criteria.start_time,
+                          }),
+                        },
+                        {
+                          ...(criteria.end_time && {
+                            code: "end",
+                            value: criteria.end_time,
+                          }),
+                        },
+                        {
+                          code: "payload_type",
+                          value: criteria?.payload_type,
+                        },
+                      ],
+                    }
+                  : {
+                      code: "catalog_full",
+                      list: [
+                        {
+                          code: "payload_type",
+                          value: criteria?.payload_type
+                            ? criteria?.payload_type
+                            : "inline",
+                        },
+                      ],
                     }),
-                  },
-                ],
               },
               {
                 code: "bap_terms",

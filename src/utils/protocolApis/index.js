@@ -370,19 +370,26 @@ const protocolGetItemDetails = async (searchRequest) => {
  * on search products
  * @param {Object} query
  */
-const onSearch = async (query) => {
-  console.log("Query", query);
+const onSearch = async (req) => {
+  // console.log("Query", query);
+  const { context = {}, message = {} } = req;
 
-  const queryString = Object.keys(query)
-    .map((key) => {
-      if (typeof key !== "undefined" && typeof query[key] !== "undefined")
-        return encodeURIComponent(key) + "=" + encodeURIComponent(query[key]);
-    })
-    .join("&");
+  const response = {
+    context: context,
+    message: {
+      status: "ACK",
+    },
+  };
+  // const queryString = Object.keys(query)
+  //   .map((key) => {
+  //     if (typeof key !== "undefined" && typeof query[key] !== "undefined")
+  //       return encodeURIComponent(key) + "=" + encodeURIComponent(query[key]);
+  //   })
+  //   .join("&");
 
   const apiCall = await fetch(
     process.env.PROTOCOL_BASE_URL + "/" + PROTOCOL_API_URLS.ON_SEARCH,
-    JSON.stringify(query)
+    JSON.stringify(response)
   );
 
   const result = await apiCall.json();

@@ -275,8 +275,9 @@ class SearchService {
       return {
         context,
         message: {
-          catalogs: [...searchResult],
-          count: protocolSearchResponse?.count,
+          status: "ACK",
+          // catalogs: [...searchResult],
+          // count: protocolSearchResponse?.count,
         },
       };
     } catch (err) {
