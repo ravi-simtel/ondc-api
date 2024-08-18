@@ -1,4 +1,5 @@
 import { bppSearch } from "../../utils/bppApis/index.js";
+import crypto from "crypto";
 
 class BPPService {
   /**
@@ -154,12 +155,113 @@ class BPPService {
       console.log("Search Response:", response);
 
       return {
-        context: context,
-        searchRequest: searchRequest,
-        message: response.message,
+        response,
       };
     } catch (err) {
       throw err;
+    }
+  }
+
+  calculateHash = function (somestring) {
+    return crypto.createHash("md5").update(somestring).digest("hex").toString();
+  };
+
+  /*
+   * This function create the response object to send back to BPP
+   * to ACK/NACK along with
+   *  Provider ID
+   *  Provider Link on our Webpage/Android/iOS app
+   *
+   *
+   * */
+  async onSearchResponse(req) {
+    try {
+      const { context = {}, message = {} } = req || {};
+      const bpp_provider = message.catalog["bpp/providers"];
+      console.log("bpp_provider:", JSON.stringify(bpp_provider, null, 4));
+      let provider_link = [];
+      bpp_provider.forEach((provider) => {
+        let str = "";
+        console.log("provider-id", provider.id);
+        let id = provider.id;
+        let items = provider.items;
+        console.log("location-id", provider.locations);
+        if (provider.id && provider.locations) {
+          provider.locations.forEach((location) => {
+            str = id + ":" + location;
+            console.log("Str:", str);
+
+            const provider = {
+              provider_id: id,
+              location_id: location,
+              sku_count: items.length,
+              deep_link_web: this.calculateHash(str),
+              deep_link_android: this.calculateHash(str + ":android"),
+              deep_link_ios: this.calculateHash(str + ":ios"),
+            };
+            provider_link.push(provider);
+          });
+        }
+      });
+      console.log(provider_link);
+      const response = {
+        context: context,
+        message: {
+          ack:
+            provider_link.length > 0
+              ? {
+                  status: "ACK",
+                  tags: provider_link.map(function (obj) {
+                    return {
+                      code: "bap_provider_link",
+                      list: [
+                        {
+                          code: "provider_id",
+                          value: obj?.provider_id ? obj.provider_id : null,
+                        },
+                        {
+                          code: "location_id",
+                          value: obj.location_id ? obj.location_id : null,
+                        },
+                        {
+                          code: "sku_count",
+                          value: obj.sku_count ? obj.sku_count : NULL,
+                        },
+                        {
+                          code: "link1_type",
+                          value: "web",
+                        },
+                        {
+                          code: "link1_value",
+                          value: obj.deep_link_web,
+                        },
+                        {
+                          code: "link2_type",
+                          value: "android",
+                        },
+                        {
+                          code: "link2_value",
+                          value: obj.deep_link_android,
+                        },
+                        {
+                          code: "link3_type",
+                          value: "ios",
+                        },
+                        {
+                          code: "link3_value",
+                          value: obj.deep_link_ios,
+                        },
+                      ],
+                    };
+                  }),
+                }
+              : {
+                  status: "NACK",
+                },
+        },
+      };
+    } catch (err) {
+      console.log("Error", err);
     }
   }
 }

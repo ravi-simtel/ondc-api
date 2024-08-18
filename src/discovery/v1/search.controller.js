@@ -2,8 +2,12 @@ import SearchService from "./search.service.js";
 import BadRequestParameterError from "../../lib/errors/bad-request-parameter.error.js";
 import NoRecordFoundError from "../../lib/errors/no-record-found.error.js";
 import { SSE_CONNECTIONS } from "../../utils/sse.js";
+import BPPService from "./bpp.service.js";
+import { response } from "express";
+import ContextFactory from "../../factories/ContextFactory.js";
 
 const searchService = new SearchService();
+const bppService = new BPPService();
 
 class SearchController {
   /**
@@ -15,8 +19,6 @@ class SearchController {
    */
   search(req, res, next) {
     const searchRequest = req.body;
-
-    console.log("Search Request", searchRequest);
 
     searchService
       .search(searchRequest)
@@ -37,25 +39,32 @@ class SearchController {
    * @param {*} next   Callback argument to the middleware function
    * @return {callback}
    */
-  onSearch(req, res, next) {
-    console.log("On search response", req.body);
+  onSearch = async (req, res, next) => {
+    console.log("On search response", JSON.stringify(req.body, null, 4));
 
+    // Retain old message id from BPP
     const { context = {}, message = {} } = req.body;
-    const messageId = context.message_id;
-    console.log("message id", messageId);
+    const message_id = context.message_id;
+    console.log("message id", message_id);
+    if (message_id) {
+      const contextFactory = new ContextFactory();
+      const protocolContext = contextFactory.create({
+        message_id: message_id,
+      });
 
-    // Parse each response from the buyer
-    if (messageId) {
-      searchService
-        .onSearch(req.body)
-        .then((result) => {
-          res.json(result);
-        })
-        .catch((err) => {
-          next(err);
-        });
+      const response = {
+        context: protocolContext,
+        message: message,
+      };
+
+      // Prepare response
+      const result = await bppService.onSearchResponse(response);
+
+      if (result) {
+        res.send(200).senf(result);
+      }
     } else throw new BadRequestParameterError();
-  }
+  };
 
   /**
    * filter
@@ -69,7 +78,7 @@ class SearchController {
     const { messageId } = query;
 
     if (messageId) {
-      searchService
+      bppService
         .getFilterParams(query)
         .then((result) => {
           res.json(result);

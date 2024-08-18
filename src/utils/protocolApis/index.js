@@ -380,12 +380,6 @@ const onSearch = async (req) => {
       status: "ACK",
     },
   };
-  // const queryString = Object.keys(query)
-  //   .map((key) => {
-  //     if (typeof key !== "undefined" && typeof query[key] !== "undefined")
-  //       return encodeURIComponent(key) + "=" + encodeURIComponent(query[key]);
-  //   })
-  //   .join("&");
 
   const apiCall = await fetch(
     process.env.PROTOCOL_BASE_URL + "/" + PROTOCOL_API_URLS.ON_SEARCH,
