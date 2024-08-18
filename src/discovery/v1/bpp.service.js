@@ -264,6 +264,47 @@ class BPPService {
       console.log("Error", err);
     }
   }
+
+  async select(req) {
+    const { context = {}, message = {} } = req;
+
+    const message_id = context.message_id;
+
+    const items = message.order.items;
+    const fulfillments = message.order.fulfillments;
+    const payment = message.order.payment;
+
+    const selectRequest = {
+      context: context,
+      message: {
+        order: {
+          provider: {
+            id: provider?.provider_id,
+            locations: [
+              {
+                id: provider?.location_id,
+              },
+            ],
+          },
+          items: items.map((item) => {
+            return {
+              id: item.id,
+              parent_item_id: item.parent_item_id,
+              location_id: item.location_id,
+              quantity: {
+                count: item.quantity,
+              },
+              tags: item.tags,
+            };
+          }),
+          fulfillments: fulfillments,
+          payment: payment,
+        },
+      },
+    };
+
+    return selectRequest;
+  }
 }
 
 export default BPPService;
