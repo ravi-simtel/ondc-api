@@ -61,7 +61,7 @@ class SearchController {
       const result = await bppService.onSearchResponse(response);
 
       if (result) {
-        res.send(200).senf(result);
+        res.send(200).send(result);
       }
     } else throw new BadRequestParameterError();
   };

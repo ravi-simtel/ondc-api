@@ -1,6 +1,7 @@
 import { bppSearch } from "../../utils/bppApis/index.js";
 import crypto from "crypto";
-
+import e from "express";
+import { isEqual } from "lodash-es";
 class BPPService {
   /**
    *
@@ -23,15 +24,13 @@ class BPPService {
                 },
               },
             }),
-            ...((criteria?.provider_id ||
-              criteria?.category_id ||
-              criteria?.provider_name) && {
+            ...((criteria?.provider_id || criteria?.provider_category_id) && {
               provider: {
                 ...(criteria?.provider_id && {
                   id: criteria?.provider_id,
                 }),
                 ...(criteria?.category_id && {
-                  category_id: criteria.category_id,
+                  category_id: criteria.provider_category_id,
                 }),
                 ...(criteria?.provider_name && {
                   descriptor: {
@@ -40,29 +39,6 @@ class BPPService {
                 }),
               },
             }),
-            ...(criteria.delivery_location || criteria.area_code
-              ? {
-                  fulfillment: {
-                    type: "Delivery",
-                    ...(criteria.delivery_location && {
-                      end: {
-                        location: {
-                          gps: criteria?.delivery_location,
-                          ...(criteria.delivery_area_code && {
-                            address: {
-                              area_code: criteria?.delivery_area_code,
-                            },
-                          }),
-                        },
-                      },
-                    }),
-                  },
-                }
-              : {
-                  fulfillment: {
-                    type: "Delivery",
-                  },
-                }),
             ...((criteria?.category_id || criteria?.category_name) && {
               category: {
                 ...(criteria?.category_id && {
@@ -83,71 +59,20 @@ class BPPService {
                 payment?.buyer_app_finder_fee_amount ||
                 process.env.BAP_FINDER_FEE_AMOUNT,
             },
-            tags: [
-              {
-                ...(criteria?.catalog
-                  ? {
-                      code: "catalog_inc",
-                      list: [
-                        {
-                          ...(criteria.inc_mode && {
-                            code: "mode",
-                            value: criteria.inc_mode,
-                          }),
-                        },
-                        {
-                          ...(criteria.start_time && {
-                            code: "start",
-                            value: criteria.start_time,
-                          }),
-                        },
-                        {
-                          ...(criteria.end_time && {
-                            code: "end",
-                            value: criteria.end_time,
-                          }),
-                        },
-                        {
-                          code: "payload_type",
-                          value: criteria?.payload_type,
-                        },
-                      ],
-                    }
-                  : {
-                      code: "catalog_full",
-                      list: [
-                        {
-                          code: "payload_type",
-                          value: criteria?.payload_type
-                            ? criteria?.payload_type
-                            : "inline",
-                        },
-                      ],
-                    }),
-              },
-              {
-                code: "bap_terms",
-                list: [
-                  {
-                    code: "static_terms",
-                    value:
-                      "https://github.com/ONDC-Official/static-terms/SimtelAI/1.0/static_terms.pdf",
-                  },
-                  {
-                    code: "static_terms_new",
-                    value:
-                      "https://github.com/ONDC-Official/NP-Static-Terms/buyerNP_BNP/1.0/tc.pdf",
-                  },
-                  {
-                    code: "effective_date",
-                    value: "2024-09-01T00:00:00.000Z",
-                  },
-                ],
-              },
-            ],
           },
         },
       };
+
+      const fulfillment = this.prepareFulFillment(criteria);
+      if (fulfillment) {
+        searchRequest.message.intent["fulfillment"] = fulfillment;
+      }
+
+      const tags = this.prepareTags(criteria);
+      if (tags && tags.length > 0) {
+        console.log(tags);
+        searchRequest.message.intent["tags"] = tags;
+      }
 
       console.log("Search Query:", JSON.stringify(searchRequest, null, 4));
       const response = await bppSearch(process.env.BPP_URL, searchRequest);
@@ -160,6 +85,120 @@ class BPPService {
     } catch (err) {
       throw err;
     }
+  }
+
+  // Prepare a JSONOBject
+  prepareFulFillment(criteria) {
+    let fulfillment = criteria.fulfillment
+      ? Object.values(criteria.fulfillment).join("")
+      : "";
+
+    if (fulfillment.localeCompare("Delivery") === 0)
+      return {
+        type: criteria?.fulfillment,
+        end: {
+          location: {
+            gps: criteria?.gps,
+            address: {
+              area_code: criteria?.delivery_area_code,
+            },
+          },
+        },
+      };
+    // TODO: Pickup pending
+    // TODO: Delivery and Pickup pending
+    else return undefined;
+  }
+
+  prepareTags(criteria) {
+    console.log("criteria", criteria);
+    let tags = [];
+    let bap_terms = criteria.bap_terms
+      ? Object.values(criteria.bap_terms).join("")
+      : "";
+    let catalog = criteria.catalog
+      ? Object.values(criteria.catalog).join("")
+      : "";
+    let inc_mode = criteria.inc_mode
+      ? Object.values(criteria.inc_mode).join("")
+      : null;
+    let start_time = criteria.start_time
+      ? Object.values(criteria.start_time).join("")
+      : null;
+    let end_time = criteria.end_time
+      ? Object.values(criteria.end_time).join("")
+      : null;
+    let payload_type = criteria.payload_type
+      ? Object.values(criteria.payload_type).join("")
+      : null;
+    if (catalog.localeCompare("catalog_inc") === 0) {
+      let tag_list = [];
+      if (inc_mode) {
+        tag_list.push({
+          code: "mode",
+          value: inc_mode,
+        });
+      }
+      if (start_time) {
+        tag_list.push({
+          code: "start",
+          value: start_time,
+        });
+      }
+      if (end_time) {
+        tag_list.push({
+          code: "end",
+          value: end_time,
+        });
+      }
+      if (payload_type) {
+        tag_list.push({
+          code: "payload_type",
+          value: payload_type,
+        });
+      }
+      console.log("Tags", tag_list);
+      if (tag_list && tag_list.length > 0) {
+        tags.push({
+          code: "catalog_inc",
+          list: tag_list,
+        });
+      }
+    }
+    if (catalog.localeCompare("catalog_full") === 0) {
+      tags.push({
+        code: "catalog_full",
+        list: [
+          {
+            code: "payload_type",
+            value: criteria.payload_type ? criteria.payload_type : "inline",
+          },
+        ],
+      });
+    }
+    if (bap_terms.localeCompare("true") === 0) {
+      tags.push({
+        code: "bap_terms",
+        list: [
+          {
+            code: "static_terms",
+            value:
+              "https://github.com/ONDC-Official/static-terms/SimtelAI/1.0/static_terms.pdf",
+          },
+          {
+            code: "static_terms_new",
+            value:
+              "https://github.com/ONDC-Official/NP-Static-Terms/buyerNP_BNP/1.0/tc.pdf",
+          },
+          {
+            code: "effective_date",
+            value: "2024-09-01T00:00:00.000Z",
+          },
+        ],
+      });
+    }
+    console.log("tags:", tags);
+    return tags;
   }
 
   calculateHash = function (somestring) {
@@ -194,7 +233,7 @@ class BPPService {
             const provider = {
               provider_id: id,
               location_id: location,
-              sku_count: items.length,
+              ...(items?.length && { sku_count: items?.length }),
               deep_link_web: this.calculateHash(str),
               deep_link_android: this.calculateHash(str + ":android"),
               deep_link_ios: this.calculateHash(str + ":ios"),
