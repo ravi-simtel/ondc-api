@@ -11,8 +11,6 @@ import UpdateOrderController from "./update/updateOrder.controller.js";
 import ComplaintOrderController from "./complaint/complaintOrder.controller.js";
 import UploadController from "../upload/upload.controller.js";
 
-const rootRouter = new Router();
-
 const cancelOrderController = new CancelOrderController();
 const confirmOrderController = new ConfirmOrderController();
 const initOrderController = new InitOrderController();
@@ -23,22 +21,20 @@ const updateOrderController = new UpdateOrderController();
 const complaintOrderController = new ComplaintOrderController();
 const uploadController = new UploadController();
 
+const router = new Router();
+
 // select order v1
-rootRouter.post(
-  "/v1/select",
-  authentication(),
-  selectOrderController.selectOrder
-);
+router.post("/v1/select", authentication(), selectOrderController.selectOrder);
 
 // select order v2
-rootRouter.post(
+router.post(
   "/v2/select",
   authentication(),
   selectOrderController.selectMultipleOrder
 );
 
 // on select order v1
-rootRouter.get(
+router.get(
   "/v1/on_select",
   authentication(),
   selectOrderController.onSelectOrder
@@ -147,4 +143,4 @@ rootRouter.post('/v2/getSignUrlForUpload/:orderId', authentication(), uploadCont
 
 //#endregion
 **/
-export default rootRouter;
+export default router;

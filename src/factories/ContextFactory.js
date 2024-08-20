@@ -18,8 +18,8 @@ class ContextFactory {
 
     this.domain = domain;
     this.country = country;
-    this.city = city,
-    this.state = state,
+    this.city = city;
+    this.state = state;
     this.bapId = bapId;
     this.bapUrl = bapUrl;
     this.bppUrl = bppUrl;
@@ -81,17 +81,16 @@ class ContextFactory {
     const {
       transactionId, //FIXME: if ! found in args then create new
       messageId = uuidv4(),
-      action = PROTOCOL_CONTEXT.SEARCH,
-      bppId,
+      action,
       city,
       state,
-      cityCode,
-      bpp_uri,
       pincode,
       domain,
+      bppId,
+      bppUrl,
     } = contextObject || {};
 
-    return {
+    const context = {
       domain: this.domain,
       country: this.country,
       city: this.city,
@@ -99,13 +98,15 @@ class ContextFactory {
       core_version: PROTOCOL_VERSION.v_1_2_0,
       bap_id: this.bapId,
       bap_uri: this.bapUrl,
-      bpp_uri: this.bpp_uri,
+      ...(bppId && { bpp_id: bppId }),
+      ...(bppUrl && { bpp_uri: bppUrl }),
       transaction_id: this.getTransactionId(transactionId),
       message_id: messageId,
       timestamp: this.timestamp,
-      //   ...(bppId && { bpp_id: bppId }),
       ttl: "PT30S",
     };
+    console.log("COntext", context);
+    return context;
   }
 }
 

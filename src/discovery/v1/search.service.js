@@ -36,8 +36,10 @@ class SearchService {
       // console.log("City---------------->",city);
       const contextFactory = new ContextFactory();
       const protocolContext = contextFactory.create({
+        action: requestContext?.action,
         transactionId: requestContext?.transaction_id,
         bppId: requestContext?.bpp_id,
+        bppUrl: requestContext?.bpp_url,
         city: requestContext.city,
         state: requestContext.state,
       });

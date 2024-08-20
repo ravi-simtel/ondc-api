@@ -2,6 +2,7 @@ import fetch from "node-fetch";
 
 import HttpRequest from "../HttpRequest.js";
 import PROTOCOL_API_URLS from "./routes.js";
+import { createAuthorizationHeader } from "../cryptic.js";
 
 /**
  * order confirm
