@@ -1,7 +1,7 @@
 import { bppSearch } from "../../utils/bppApis/index.js";
 import crypto from "crypto";
-import e from "express";
-import { isEqual } from "lodash-es";
+import NoRecordFoundError from "../../lib/errors/no-record-found.error.js";
+
 class BPPService {
   /**
    *
@@ -214,9 +214,19 @@ class BPPService {
    *
    * */
   async onSearchResponse(req) {
+    let response = {};
+    let error_code = {};
     try {
       const { context = {}, message = {} } = req || {};
       const bpp_provider = message.catalog["bpp/providers"];
+      if (!bpp_provider) {
+        error_code = {
+          type: "DOMAIN-ERROR",
+          code: "20003",
+          message: "Provider ID not found",
+        };
+        throw new NoRecordFoundError("Provider Id not found");
+      }
       console.log("bpp_provider:", JSON.stringify(bpp_provider, null, 4));
       let provider_link = [];
       bpp_provider.forEach((provider) => {
@@ -243,7 +253,7 @@ class BPPService {
         }
       });
       console.log(provider_link);
-      const response = {
+      response = {
         context: context,
         message: {
           ack:
@@ -251,6 +261,31 @@ class BPPService {
               ? {
                   status: "ACK",
                   tags: provider_link.map(function (obj) {
+                    if (!obj.provider_id) {
+                      error_code = {
+                        type: "DOMAIN-ERROR",
+                        code: "20003",
+                        message: "Provider ID not found",
+                      };
+                      throw new NoRecordFoundError("Provider Id not found");
+                    }
+                    if (!obj.location_id) {
+                      error_code = {
+                        type: "DOMAIN-ERROR",
+                        code: "20004",
+                        message: "Location ID not found",
+                      };
+                      throw new NoRecordFoundError("Location Id not found");
+                    }
+
+                    if (!obj.sku_count) {
+                      error_code = {
+                        type: "DOMAIN-ERROR",
+                        code: "20005",
+                        message: "Item not found",
+                      };
+                      throw new NoRecordFoundError("Item not found");
+                    }
                     return {
                       code: "bap_provider_link",
                       list: [
@@ -264,7 +299,7 @@ class BPPService {
                         },
                         {
                           code: "sku_count",
-                          value: obj.sku_count ? obj.sku_count : NULL,
+                          value: obj.sku_count ? obj.sku_count : 0,
                         },
                         {
                           code: "link1_type",
@@ -299,15 +334,32 @@ class BPPService {
                 },
         },
       };
+      return response;
     } catch (err) {
-      console.log("Error", err);
+      response = {
+        context: context,
+        message: {
+          ack: {
+            status: "NACK",
+          },
+        },
+        error: error_code
+          ? error_code
+          : {
+              type: "DOMAIN-ERROR",
+              code: "20000",
+              message: "Invalid Catalog",
+            },
+      };
+      console.log("response:", response);
+      console.log("Error: ", err);
+
+      return response;
     }
   }
 
   async select(req) {
     const { context = {}, message = {} } = req;
-
-    const message_id = context.message_id;
 
     const items = message.order.items;
     const fulfillments = message.order.fulfillments;

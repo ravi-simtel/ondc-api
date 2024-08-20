@@ -1,15 +1,15 @@
-import {Router} from 'express';
-import { authentication } from '../../middlewares/index.js';
+import { Router } from "express";
+import { authentication } from "../../middlewares/index.js";
 
-import CancelOrderController from './cancel/cancelOrder.controller.js';
-import ConfirmOrderController from './confirm/confirmOrder.controller.js';
-import InitOrderController from './init/initOrder.controller.js';
-import OrderHistoryController from './history/orderHistory.controller.js';
-import OrderStatusController from './status/orderStatus.controller.js';
-import SelectOrderController from './select/selectOrder.controller.js';
-import UpdateOrderController from './update/updateOrder.controller.js';
-import ComplaintOrderController from './complaint/complaintOrder.controller.js';
-import UploadController from '../upload/upload.controller.js';
+import CancelOrderController from "./cancel/cancelOrder.controller.js";
+import ConfirmOrderController from "./confirm/confirmOrder.controller.js";
+import InitOrderController from "./init/initOrder.controller.js";
+import OrderHistoryController from "./history/orderHistory.controller.js";
+import OrderStatusController from "./status/orderStatus.controller.js";
+import SelectOrderController from "./select/selectOrder.controller.js";
+import UpdateOrderController from "./update/updateOrder.controller.js";
+import ComplaintOrderController from "./complaint/complaintOrder.controller.js";
+import UploadController from "../upload/upload.controller.js";
 
 const rootRouter = new Router();
 
@@ -20,8 +20,29 @@ const orderHistoryController = new OrderHistoryController();
 const orderStatusController = new OrderStatusController();
 const selectOrderController = new SelectOrderController();
 const updateOrderController = new UpdateOrderController();
-const complaintOrderController  = new  ComplaintOrderController ();
-const uploadController = new  UploadController();
+const complaintOrderController = new ComplaintOrderController();
+const uploadController = new UploadController();
+
+// select order v1
+rootRouter.post(
+  "/v1/select",
+  authentication(),
+  selectOrderController.selectOrder
+);
+
+// select order v2
+rootRouter.post(
+  "/v2/select",
+  authentication(),
+  selectOrderController.selectMultipleOrder
+);
+
+// on select order v1
+rootRouter.get(
+  "/v1/on_select",
+  authentication(),
+  selectOrderController.onSelectOrder
+);
 
 //#region confirm order
 /**
@@ -110,19 +131,6 @@ rootRouter.get('/v2/on_order_status', authentication(), orderStatusController.on
 
 //#region select order
 
-// select order v1
-rootRouter.post(
-    '/v1/select', 
-    authentication(),
-    selectOrderController.selectOrder,
-);
-
-// select order v2
-rootRouter.post(
-    '/v2/select', 
-    authentication(),
-    selectOrderController.selectMultipleOrder,
-);
 
 // select order v2
 rootRouter.post(
@@ -130,11 +138,6 @@ rootRouter.post(
     complaintOrderController.raiseComplaint,
 );
 
-// on select order v1
-rootRouter.get('/v1/on_select', authentication(), selectOrderController.onSelectOrder);
-
-// on select order v2
-rootRouter.get('/v2/on_select', authentication(), selectOrderController.onSelectMultipleOrder);
 
 rootRouter.post('/v1/update', authentication(), updateOrderController.update);
 

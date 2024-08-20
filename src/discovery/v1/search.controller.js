@@ -1,9 +1,7 @@
 import SearchService from "./search.service.js";
 import BadRequestParameterError from "../../lib/errors/bad-request-parameter.error.js";
 import NoRecordFoundError from "../../lib/errors/no-record-found.error.js";
-import { SSE_CONNECTIONS } from "../../utils/sse.js";
 import BPPService from "./bpp.service.js";
-import { response } from "express";
 import ContextFactory from "../../factories/ContextFactory.js";
 
 const searchService = new SearchService();
@@ -40,30 +38,49 @@ class SearchController {
    * @return {callback}
    */
   onSearch = async (req, res, next) => {
-    console.log("On search response", JSON.stringify(req.body, null, 4));
+    console.log("On search request: ", JSON.stringify(req.body, null, 4));
+    let onSearchResponse = {};
+    try {
+      // Retain old message id from BPP
+      const { context = {}, message = {} } = req;
+      const message_id = context.message_id;
+      if (message_id) {
+        const contextFactory = new ContextFactory();
+        const protocolContext = contextFactory.create({
+          message_id: message_id,
+        });
 
-    // Retain old message id from BPP
-    const { context = {}, message = {} } = req.body;
-    const message_id = context.message_id;
-    console.log("message id", message_id);
-    if (message_id) {
-      const contextFactory = new ContextFactory();
-      const protocolContext = contextFactory.create({
-        message_id: message_id,
-      });
+        const request = {
+          context: protocolContext,
+          message: message,
+        };
 
-      const response = {
-        context: protocolContext,
-        message: message,
-      };
+        // Prepare response
+        onSearchResponse = await bppService.onSearchResponse(request);
 
-      // Prepare response
-      const result = await bppService.onSearchResponse(response);
-
-      if (result) {
-        res.send(200).send(result);
+        if (onSearchResponse) {
+          console.log("On Search Response: ", onSearchResponse);
+          res.sendStatus(200).send(onSearchResponse);
+        }
       }
-    } else throw new BadRequestParameterError();
+    } catch (err) {
+      console.log("Issue with catalog ");
+      onSearchResponse = {
+        context: context,
+        message: {
+          ack: {
+            status: "NACK",
+          },
+        },
+        error: {
+          type: "DOMAIN-ERROR",
+          code: "20000",
+          message: "Invalid Catalog",
+        },
+      };
+      console.log("On Search Response: ", onSearchResponse);
+      res.send(200).send(onSearchResponse);
+    }
   };
 
   /**
