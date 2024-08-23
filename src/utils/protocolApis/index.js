@@ -371,7 +371,7 @@ const protocolGetItemDetails = async (searchRequest) => {
  * @param {Object} query
  */
 const onSearch = async (req) => {
-  // console.log("Query", query);
+  console.log("Protocol API query", JSON.stringify(req, null, 4));
   const { context = {}, message = {} } = req;
 
   const response = {

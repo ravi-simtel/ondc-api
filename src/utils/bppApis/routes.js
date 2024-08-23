@@ -8,14 +8,14 @@ const SUPPORT = "support";
 const TRACK = "track";
 
 const BPP_API_URLS = {
-    CANCEL,
-    CONFIRM,
-    INIT,
-    SEARCH,
-    SELECT,
-    STATUS,
-    SUPPORT,
-    TRACK,
-}
+  CANCEL,
+  CONFIRM,
+  INIT,
+  SEARCH,
+  SELECT,
+  STATUS,
+  SUPPORT,
+  TRACK,
+};
 
 export default BPP_API_URLS;
